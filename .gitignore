@@ -21,3 +21,5 @@ env/
 *.njsproj
 *.sln
 *.swp
+
+.streamlit/secrets.toml

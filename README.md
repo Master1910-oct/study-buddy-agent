@@ -1,47 +1,70 @@
-# Study Buddy CLI App
+# Study Buddy — AI Quiz App
 
-Study Buddy is a Python command-line quiz application that uses the Google Gemini API (via the `google-genai` SDK) to generate custom 5-question multiple-choice quizzes based on your study notes or topics. It tests your knowledge, provides real-time explanations, and gives personalized study recommendations.
+Study Buddy is an AI-powered quiz application built with Google Gemini. Enter any study topic and get a personalised 5-question multiple-choice quiz with instant grading, coached explanations, and a smart score summary. Available as both a **Streamlit web UI** and a **command-line interface**.
+
+## Project Structure
+
+```
+study-buddy-agent/
+├── agents.py          # Shared AI agents (quiz generation + grading coach)
+├── app.py             # Streamlit web UI
+├── study_buddy.py     # CLI entry-point
+└── requirements.txt
+```
+
+### Agent Architecture
+
+| Agent | File | Role |
+|---|---|---|
+| **Quiz Generator Agent** | `agents.py` | Generates 5 MCQ questions via Gemini structured output |
+| **Grading Coach Agent** | `agents.py` | Grades each answer and provides a tailored coaching tip |
+
+Both agents are defined in `agents.py` and reused by both the CLI and the web UI.
+
+---
 
 ## Prerequisites
 
 - Python 3.10 or higher
-- A Google Gemini API Key
+- A Google Gemini API Key ([get one here](https://aistudio.google.com/app/apikey))
 
-## Setup Instructions
+---
 
-### 1. Clone or Open the Directory
-Make sure you are in the application directory:
+## Setup
+
+### 1. Clone / open the directory
 ```bash
 cd study-buddy-agent
 ```
 
-### 2. Install Dependencies
-It's recommended to use a virtual environment:
+### 2. Create & activate a virtual environment
 ```bash
-# Create a virtual environment
+# Create
 python -m venv venv
 
-# Activate the virtual environment
-# On Windows (Command Prompt):
+# Activate — Windows (Command Prompt)
 venv\Scripts\activate.bat
-# On Windows (PowerShell):
-venv\Scripts\Activate.ps1
-# On macOS/Linux:
-source venv/bin/activate
 
-# Install requirements
+# Activate — Windows (PowerShell)
+venv\Scripts\Activate.ps1
+
+# Activate — macOS / Linux
+source venv/bin/activate
+```
+
+### 3. Install dependencies
+```bash
 pip install -r requirements.txt
 ```
 
-### 3. Set the `GEMINI_API_KEY` Environment Variable
-You must configure the `GEMINI_API_KEY` environment variable. Replace `your_api_key_here` with your actual Gemini API key.
+### 4. Set your Gemini API key
 
-#### Windows (Command Prompt)
+#### Windows — Command Prompt
 ```cmd
 set GEMINI_API_KEY=your_api_key_here
 ```
 
-#### Windows (PowerShell)
+#### Windows — PowerShell
 ```powershell
 $env:GEMINI_API_KEY="your_api_key_here"
 ```
@@ -51,34 +74,55 @@ $env:GEMINI_API_KEY="your_api_key_here"
 export GEMINI_API_KEY="your_api_key_here"
 ```
 
+#### Streamlit secrets (alternative for the web UI)
+Create `.streamlit/secrets.toml` in the project root:
+```toml
+GEMINI_API_KEY = "your_api_key_here"
+```
+
 ---
 
-## How to Run
+## Running the App
 
-After setting the environment variable and activating your virtual environment, run the app.
+### Option A — Streamlit Web UI (recommended)
+```bash
+streamlit run app.py
+```
+Then open **http://localhost:8501** in your browser.
 
-### 1. Run Interactively (Menu Selection)
-Run it without arguments to choose between typing a topic or pasting study notes:
+**UI features:**
+- Clean dark-mode design with gradient colour theme
+- Text input for your study topic
+- One question at a time with radio-button options
+- Instant colour-coded feedback (✅ green / ❌ red) after each answer
+- Live coaching explanation from Gemini when you answer incorrectly
+- Animated progress bar tracking your position in the quiz
+- Final score summary with performance badge and personalised review recommendation
+- "Try New Topic" and "Retry Same Topic" buttons
+
+### Option B — Command-Line Interface
 ```bash
 python study_buddy.py
 ```
+Choose between entering a single-line topic or pasting multi-line study notes.
 
-- If pasting notes, paste them and press:
-  - **Windows**: `Ctrl + Z` and then `Enter`
-  - **macOS/Linux**: `Ctrl + D`
-
-### 2. Run Directly with a Topic (Quick Demo)
-Skip the interactive menu by passing the `--topic` flag:
-```bash
-python study_buddy.py --topic "Photosynthesis"
-```
-```bash
-python study_buddy.py --topic "Machine Learning Basics"
-```
+- If pasting notes, signal end-of-input with:
+  - **Windows**: `Ctrl + Z` then `Enter`
+  - **macOS / Linux**: `Ctrl + D`
 
 ---
 
-## Game Play Features:
-- **Terminal Colors**: Highlighting correct (`✅ Correct!`) and incorrect (`❌ Incorrect`) choices in color for readability.
-- **Grading & Explanations**: Answers are graded in real-time, accompanied by a clear explanation.
-- **Smart Recommendations**: If you miss any questions, Gemini analyzes your performance and suggests what topic/concepts you should review next in exactly one sentence.
+## Features
+
+| Feature | Web UI | CLI |
+|---|:---:|:---:|
+| AI-generated 5-question MCQ quiz | ✅ | ✅ |
+| Input validation (empty / too long) | ✅ | ✅ |
+| Retry-once on Gemini API errors | ✅ | ✅ |
+| Instant grading per question | ✅ | ✅ |
+| Gemini coaching tip on wrong answers | ✅ | ✅ |
+| Final score + review recommendation | ✅ | ✅ |
+| Colour-coded visual feedback | ✅ | — |
+| Progress bar | ✅ | — |
+| Retry same topic | ✅ | — |
+| Paste multi-line study notes | — | ✅ |
