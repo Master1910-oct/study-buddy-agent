@@ -13,14 +13,21 @@ from agents import (
     TOPIC_MAX_LENGTH,
     quiz_generator_agent,
     grading_coach_agent,
-    GEMINI_API_KEY,
+    get_api_key,
 )
 
 # ---------------------------------------------------------------------------
 # Guard: fail fast in the CLI if the API key is missing
+#
+# NOTE: We call get_api_key() here (a function) instead of importing the
+# GEMINI_API_KEY variable directly. agents.py only resolves the key lazily
+# inside get_api_key() — the raw module-level GEMINI_API_KEY variable is
+# still an empty string at import time. Importing that variable by name
+# would capture its stale, empty value forever, so this check would always
+# fail even when the environment variable IS set correctly.
 # ---------------------------------------------------------------------------
 
-if not GEMINI_API_KEY:
+if not get_api_key():
     print("Error: GEMINI_API_KEY environment variable is not set.", file=sys.stderr)
     print("Please set the GEMINI_API_KEY environment variable and try again.", file=sys.stderr)
     print("Example (Windows CMD): set GEMINI_API_KEY=your_api_key_here", file=sys.stderr)

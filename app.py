@@ -314,6 +314,37 @@ st.markdown(
         margin-bottom: 0.4rem;
     }
 
+    /* ---- Code blocks (from st.markdown code fences) ---- */
+    /* Ensure pre/code inside the question markdown renders as a proper
+       monospace block with visible background, line breaks, and scrolling. */
+    [data-testid="stMarkdownContainer"] pre {
+        background: #0d1117 !important;
+        border: 1px solid var(--clr-border) !important;
+        border-radius: 8px !important;
+        padding: 1rem 1.2rem !important;
+        overflow-x: auto !important;
+        margin: 0.75rem 0 !important;
+        white-space: pre !important;
+    }
+    [data-testid="stMarkdownContainer"] pre code {
+        font-family: 'JetBrains Mono', 'Fira Code', 'Cascadia Code', Consolas, monospace !important;
+        font-size: 0.88rem !important;
+        line-height: 1.6 !important;
+        color: #e6edf3 !important;
+        white-space: pre !important;
+        background: transparent !important;
+        padding: 0 !important;
+    }
+    /* Inline code */
+    [data-testid="stMarkdownContainer"] code:not(pre code) {
+        font-family: 'JetBrains Mono', 'Fira Code', Consolas, monospace !important;
+        font-size: 0.87em !important;
+        background: rgba(110,118,129,0.2) !important;
+        border-radius: 4px !important;
+        padding: 0.15em 0.4em !important;
+        color: var(--clr-accent) !important;
+    }
+
     /* ---- Misc ---- */
     hr { border-color: var(--clr-border) !important; margin: 1.4rem 0 !important; }
     .stSpinner > div { border-top-color: var(--clr-primary) !important; }
@@ -353,6 +384,8 @@ def reset_quiz() -> None:
     """Reset all quiz state back to the input stage."""
     for key, default in DEFAULTS.items():
         st.session_state[key] = default
+    if "topic_input_widget" in st.session_state:
+        st.session_state["topic_input_widget"] = ""
 
 
 _OPTION_PREFIX_RE = _re.compile(
@@ -645,4 +678,5 @@ elif st.session_state.stage == "result":
             reset_quiz()
             # Pre-fill the topic so the user can hit generate immediately
             st.session_state.topic = saved_topic
+            st.session_state["topic_input_widget"] = saved_topic
             st.rerun()

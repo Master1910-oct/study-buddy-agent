@@ -76,6 +76,10 @@ def get_api_key() -> str:
     global GEMINI_API_KEY  # noqa: PLW0603
     if not GEMINI_API_KEY:
         GEMINI_API_KEY = _resolve_api_key()
+        if GEMINI_API_KEY:
+            print(f"[DEBUG] Resolved API Key: {GEMINI_API_KEY[:6]}...{GEMINI_API_KEY[-4:]}", file=sys.stderr)
+        else:
+            print("[DEBUG] Resolved API Key: (empty)", file=sys.stderr)
     return GEMINI_API_KEY
 
 
@@ -114,7 +118,18 @@ class QuizQuestion(BaseModel):
     """A single multiple-choice quiz question with 4 options."""
 
     question: str = Field(
-        description="The multiple-choice question testing understanding of the provided notes or topic."
+        description=(
+            "The full question text. "
+            "If the question contains a code snippet, wrap it in a triple-backtick "
+            "markdown code fence with the language identifier on the opening line "
+            "(e.g. ```java). "
+            "Because this value is a JSON string, every line break inside the code "
+            "fence MUST be encoded as the two-character escape sequence \\n — never "
+            "as a literal newline character. "
+            "Add a \\n before the opening fence and after the closing fence so the "
+            "block is surrounded by blank lines. "
+            "Never write code inline without a code fence."
+        )
     )
     options: List[str] = Field(description="Exactly 4 distinct multiple-choice options.")
     correct_option: str = Field(
@@ -191,11 +206,18 @@ def quiz_generator_agent(topic: str) -> Quiz:
         "generate a high-quality quiz with exactly 5 multiple choice questions. "
         "Each question must have exactly 4 options. Specify the correct option as "
         "A, B, C, or D. Provide a short explanation for the correct answer.\n\n"
-        "IMPORTANT FORMATTING RULE: If any question includes a code snippet, "
-        "you MUST wrap it in a triple-backtick markdown code fence with the "
-        "language name (e.g. ```java, ```python, ```javascript). "
-        "Always add a blank line before the opening fence and after the closing "
-        "fence so the block renders correctly. Never write code inline without fences.\n\n"
+        "IMPORTANT FORMATTING RULE FOR CODE SNIPPETS:\n"
+        "If a question includes a code snippet, you MUST wrap it in a "
+        "triple-backtick markdown code fence with the language name on the "
+        "opening line, e.g.:\n"
+        "  ```java\n"
+        "  System.out.println(\"Hello\");\n"
+        "  ```\n"
+        "Because the 'question' field is a JSON string value, every line break "
+        "inside the code block MUST be written as the two-character JSON escape "
+        "sequence \\n (backslash + n), NOT as a literal newline. "
+        "Place a \\n before the opening fence and after the closing fence. "
+        "Never embed code inline without a fence.\n\n"
         f"Topic: {topic}"
     )
 
@@ -217,6 +239,12 @@ def quiz_generator_agent(topic: str) -> Quiz:
         try:
             raw_json = _call_api()
             quiz = Quiz.model_validate_json(raw_json)
+            # --- DEBUG: print raw question fields so we can verify newlines ---
+            print("\n=== DEBUG: raw question fields ===", file=sys.stderr)
+            for i, q in enumerate(quiz.questions):
+                print(f"Q{i+1}: {repr(q.question)}", file=sys.stderr)
+            print("=== END DEBUG ===", file=sys.stderr)
+            # -----------------------------------------------------------------
             return quiz
         except Exception as exc:
             last_error = exc
